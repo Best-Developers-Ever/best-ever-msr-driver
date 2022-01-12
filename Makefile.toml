@@ -1,0 +1,46 @@
+[tasks.clean-cert]
+script = '''
+# Remove the self-signed certificate.
+if exist DriverCertificate.cer ( rm DriverCertificate.cer )
+'''
+
+[tasks.build-driver]
+script = '''
+cargo b %BUILD_FLAGS%
+'''
+
+[tasks.rename]
+script = '''
+cd %TARGET_PATH%
+rename best_ever_msr_driver.dll best_ever_msr_driver.sys
+'''
+
+[tasks.sign]
+dependencies = ["build-driver", "rename"]
+script = '''
+call "%VC_BUILD_DIR%"
+if not exist DriverCertificate.cer ( makecert -r -pe -ss PrivateCertStore -n CN=DriverCertificate DriverCertificate.cer ) else ( echo Certificate already exists. )
+signtool sign /v /s PrivateCertStore /n DriverCertificate /fd certHash /t http://timestamp.digicert.com %TARGET_PATH%\best_ever_msr_driver.sys
+'''
+
+[tasks.start-service]
+script = '''
+sc create BestEverMsrDriver binPath=%cd%\%TARGET_PATH%\best_ever_msr_driver.sys type=kernel
+sc start BestEverMsrDriver
+'''
+
+[tasks.remove-service]
+script = '''
+sc stop test-service
+sc delete test-service
+'''
+
+[env]
+VC_BUILD_DIR="C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat"
+
+[env.development]
+TARGET_PATH = "target\\x86_64-pc-windows-msvc\\debug"
+
+[env.production]
+TARGET_PATH = "target\\x86_64-pc-windows-msvc\\release"
+BUILD_RELEASE = "--release"

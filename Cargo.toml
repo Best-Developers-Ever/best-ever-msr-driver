@@ -1,0 +1,27 @@
+[package]
+name = "best-ever-msr-driver"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[build-dependencies]
+failure = { version = "0.1.8", default-features = false, features = ["std"] }
+winreg = "0.10.1"
+
+[dependencies.winapi]
+git = "https://github.com/xenialghost/winapi-rs.git"
+branch = "feature/km"
+features = [
+    "wdm",
+    "ntstatus",
+    "ntdef",
+    "basetsd"
+]
+
+[dependencies.widestring]
+version = "0.5.1"
+default-features = false
+features = ["alloc"]
