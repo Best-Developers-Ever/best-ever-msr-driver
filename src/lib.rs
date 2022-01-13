@@ -18,7 +18,7 @@ use kernel_allocator::KernelAllocator;
 use crate::device::Device;
 use crate::driver::Driver;
 use crate::error::Error;
-use crate::kernel_allocator::select_allocator;
+use crate::kernel_allocator::auto_select_allocator;
 use crate::kernel_module::KernelModule;
 use crate::symbolic_link::SymbolicLink;
 use crate::utils::{create_unicode_string, version_info};
@@ -67,7 +67,7 @@ struct Module<'a> {
 
 impl<'a> KernelModule for Module<'a> {
     fn init(driver: Driver, _registry_path: &str) -> Result<Self, Error> {
-        select_allocator(&GLOBAL_ALLOCATOR);
+        auto_select_allocator(&GLOBAL_ALLOCATOR);
 
         debug_println!("Init device");
 

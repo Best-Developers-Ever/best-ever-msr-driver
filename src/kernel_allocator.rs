@@ -71,9 +71,7 @@ fn alloc_error(layout: Layout) -> ! {
     panic!("[kernel-allocator] Memory allocation error: {:?}", layout);
 }
 
-pub fn select_allocator(allocator: &KernelAllocator) {
-    debug_println!("Getting system information");
-
+pub fn auto_select_allocator(allocator: &KernelAllocator) {
     unsafe {
         match version_info() {
             Some(version_info) if version_info.dwBuildNumber as u32 >= WINDOWS_2004_BUILD => {
