@@ -2,6 +2,7 @@
 #![feature(alloc_error_handler)]
 #![feature(asm)]
 #![feature(set_ptr_value)]
+#![feature(const_fn_fn_ptr_basics)]
 
 extern crate alloc;
 
@@ -17,9 +18,10 @@ use kernel_allocator::KernelAllocator;
 use crate::device::Device;
 use crate::driver::Driver;
 use crate::error::Error;
+use crate::kernel_allocator::select_allocator;
 use crate::kernel_module::KernelModule;
 use crate::symbolic_link::SymbolicLink;
-use crate::utils::create_unicode_string;
+use crate::utils::{create_unicode_string, version_info};
 
 mod kernel_allocator;
 mod utils;
@@ -40,7 +42,7 @@ pub extern "system" fn __CxxFrameHandler3() -> i32 {
 static _FLOAT_USED: i32 = 0;
 
 #[global_allocator]
-static _GLOBAL_ALLOCATOR: KernelAllocator = KernelAllocator;
+static GLOBAL_ALLOCATOR: KernelAllocator = KernelAllocator::new();
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -65,6 +67,8 @@ struct Module<'a> {
 
 impl<'a> KernelModule for Module<'a> {
     fn init(driver: Driver, _registry_path: &str) -> Result<Self, Error> {
+        select_allocator(&GLOBAL_ALLOCATOR);
+
         debug_println!("Init device");
 
         let device: Device = driver.create_device(

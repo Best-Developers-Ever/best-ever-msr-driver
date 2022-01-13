@@ -18,7 +18,8 @@ features = [
     "wdm",
     "ntstatus",
     "ntdef",
-    "basetsd"
+    "basetsd",
+    "winnt"
 ]
 
 [dependencies.widestring]
