@@ -32,6 +32,7 @@ mod kernel_module;
 mod device;
 mod symbolic_link;
 mod debug;
+mod io;
 
 #[no_mangle]
 pub extern "system" fn __CxxFrameHandler3() -> i32 {

@@ -1,9 +1,9 @@
-use winapi::km::wdm::{DEVICE_OBJECT, IO_STACK_LOCATION, IoCompleteRequest, IoDeleteDevice, IoGetCurrentIrpStackLocation, IRP, IRP_MJ};
-use winapi::km::wdm::IO_PRIORITY::IO_NO_INCREMENT;
+use winapi::km::wdm::{DEVICE_OBJECT, IO_STACK_LOCATION, IoDeleteDevice, IRP, IRP_MJ};
 use winapi::shared::ntdef::NTSTATUS;
 use winapi::shared::ntstatus::{STATUS_NOT_IMPLEMENTED, STATUS_SUCCESS};
 
 use crate::{debug_println, Error, READ_MSR_IO_CONTROL_CODE, WRITE_MSR_IO_CONTROL_CODE};
+use crate::io::IoRequest;
 use crate::msr::{ioctl_read_msr, ioctl_write_msr};
 
 pub struct Device {
@@ -34,43 +34,6 @@ impl Device {
             unsafe {
                 IoDeleteDevice(self.raw);
             }
-        }
-    }
-}
-
-pub struct IoRequest {
-    irp: *mut IRP,
-}
-
-impl IoRequest {
-    fn from_raw(irp: *mut IRP) -> Self {
-        Self { irp }
-    }
-
-    fn irp_mut(&self) -> &mut IRP {
-        unsafe { &mut *self.irp }
-    }
-
-    fn stack_location(&self) -> &IO_STACK_LOCATION {
-        unsafe { &*IoGetCurrentIrpStackLocation(self.irp_mut()) }
-    }
-
-    fn complete(&self, value: Result<usize, Error>) {
-        let irp: &mut IRP = self.irp_mut();
-
-        match value {
-            Ok(code) => unsafe {
-                irp.IoStatus.Information = code;
-                (irp.IoStatus.__bindgen_anon_1.Status_mut() as *mut NTSTATUS).write(STATUS_SUCCESS);
-            }
-            Err(error) => unsafe {
-                irp.IoStatus.Information = 0;
-                (irp.IoStatus.__bindgen_anon_1.Status_mut() as *mut NTSTATUS).write(error.to_nt_status());
-            }
-        }
-
-        unsafe {
-            IoCompleteRequest(irp as *mut IRP, IO_NO_INCREMENT);
         }
     }
 }
